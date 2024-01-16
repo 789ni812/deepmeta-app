@@ -11,13 +11,13 @@ type TaskProps = {
 }
 
 export function Task({ task, setLocalTasks }: TaskProps) {
-const { id, text, done, order }: TaskType = task;
+    const { id, text, done, order }: TaskType = task;
 
-  // Define the mutations
+
+  
   const doneMutation = api.task.toggle.useMutation({
     onSuccess: () => {
       toast.success("Task status updated");
-      // Update local state
       setLocalTasks(currentTasks =>
         currentTasks.map(t => t.id === id ? { ...t, done: !t.done } : t)
       );
@@ -30,7 +30,6 @@ const { id, text, done, order }: TaskType = task;
   const deleteMutation = api.task.delete.useMutation({
     onSuccess: () => {
       toast.success("Task deleted");
-      // Update local state
       setLocalTasks(currentTasks => 
         currentTasks.filter(t => t.id !== id)
       );
@@ -50,7 +49,7 @@ const { id, text, done, order }: TaskType = task;
     deleteMutation.mutate(id);
   };
 
-  // Drag and drop handlers
+
   const {
     attributes,
     listeners,
@@ -67,7 +66,6 @@ const { id, text, done, order }: TaskType = task;
   return (
     <div ref={setNodeRef} style={style} className="flex gap-2 items-center justify-between">
       <div {...listeners} {...attributes} className="drag-handle">
-        {/* Icon or element to use as the drag handle */}
         <span>☰</span>
       </div>
       <div className="flex my-3 items-center">

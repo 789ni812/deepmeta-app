@@ -27,33 +27,32 @@ export function Tasks() {
     const { data: tasks, isLoading, isError } = api.task.all.useQuery();
     const { mutate: updateTaskOrder } = api.task.updateOrder.useMutation();
 
-    const [activeId, setActiveId] = useState<number | null>(null); // Specify the type for activeId
-    const [localTasks, setLocalTasks] = useState<TaskType[]>([]); // Specify the type for localTasks
+    const [activeId, setActiveId] = useState<number | null>(null); 
+    const [localTasks, setLocalTasks] = useState<TaskType[]>([]); 
 
     useEffect(() => {
       if (tasks) {
-        setLocalTasks([...tasks].sort((a, b) => a.order - b.order)); // Clone the tasks array and sort it
+        setLocalTasks([...tasks].sort((a, b) => a.order - b.order)); 
       }
     }, [tasks]);
 
-    function handleDragStart(event: DragStartEvent) { // Specify the type for event
+    function handleDragStart(event: DragStartEvent) { 
         const { active } = event;
         setActiveId(active.id as number);
     }
 
-    function handleDragEnd(event: DragEndEvent) { // Specify the type for event
+    function handleDragEnd(event: DragEndEvent) { 
         const { active, over } = event;
-        if (active.id !== over.id) {
+        if (over && active.id !== over.id) {
             setLocalTasks(currentItems => {
-                const oldIndex = currentItems.findIndex(item => item.id === active.id);
+                const oldIndex = currentItems.findIndex((item) => item.id === active.id);
                 const newIndex = currentItems.findIndex(item => item.id === over.id);
                 const reorderedItems = arrayMove(currentItems, oldIndex, newIndex);
-                // Prepare the data for updating the order in the database
                 const updatedOrder = reorderedItems.map((item, index) => ({
                     id: item.id,
                     order: index
                 }));
-                // Update the order on the server
+                
                 updateTaskOrder(updatedOrder);
                 return [...reorderedItems];
             });
