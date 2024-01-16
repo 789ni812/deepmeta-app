@@ -39,12 +39,12 @@ export function Task({ task, setLocalTasks }: TaskProps) {
     },
   });
 
-  const handleCheckboxChange = (e) => {
+  const handleCheckboxChange = (e: { stopPropagation: () => void; }) => {
     e.stopPropagation();
-    doneMutation.mutate({ id, done: e.target.checked });
+    doneMutation.mutate({ id, done: (e as React.ChangeEvent<HTMLInputElement>).target.checked });
   };
 
-  const handleDeleteClick = (e) => {
+  const handleDeleteClick = (e: { stopPropagation: () => void; }) => {
     e.stopPropagation();
     deleteMutation.mutate(id);
   };
