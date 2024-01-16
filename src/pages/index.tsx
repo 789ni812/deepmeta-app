@@ -1,5 +1,7 @@
 import { CreateTask } from "~/components/CreateTask";
 import { Tasks } from "~/components/Tasks";
+import {TestSorting} from "../components/TestSorting"
+
 
 export default function Home() {
   return (
@@ -11,9 +13,9 @@ export default function Home() {
           Techly.ai
           </h1>
 
-<Tasks />
-<CreateTask />
-
+{/* <Tasks />
+<CreateTask /> */}
+<TestSorting />
          </div>
       </main>
     </>
