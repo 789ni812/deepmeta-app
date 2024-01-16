@@ -6,12 +6,12 @@ import toast from "react-hot-toast";
 import { api } from "../utils/api";
 
 type TaskProps = {
-  task: TaskType;
-  setLocalTasks: React.Dispatch<React.SetStateAction<TaskType[]>>;
+    task: TaskType;
+    setLocalTasks: React.Dispatch<React.SetStateAction<TaskType[]>>;
 }
 
 export function Task({ task, setLocalTasks }: TaskProps) {
-  const { id, text, done, order } = task;
+const { id, text, done, order }: TaskType = task;
 
   // Define the mutations
   const doneMutation = api.task.toggle.useMutation({
@@ -70,7 +70,7 @@ export function Task({ task, setLocalTasks }: TaskProps) {
         {/* Icon or element to use as the drag handle */}
         <span>☰</span>
       </div>
-      <div className="flex gap-2 items-center">
+      <div className="flex my-3 items-center">
         <input
           className="cursor-pointer w-4 h-4 border border-gray-300 rounded bg-gray-50 focus:ring-3 focus:ring-blue-300 dark:bg-gray-700 dark:border-gray-600 dark:focus:ring-blue-600 dark:ring-offset-gray-800"
           type="checkbox" name="done" id={`checkbox-${id}`} checked={done}
