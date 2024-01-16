@@ -1,5 +1,5 @@
-import { countRouter } from "~/server/api/routers/count";
 import { createTRPCRouter } from "~/server/api/trpc";
+import { taskRouter } from "./routers/task";
 
 /**
  * This is the primary router for your server.
@@ -7,7 +7,7 @@ import { createTRPCRouter } from "~/server/api/trpc";
  * All routers added in /api/routers should be manually added here.
  */
 export const appRouter = createTRPCRouter({
-  count: countRouter,
+  task: taskRouter
 });
 
 // export type definition of API
