@@ -1,6 +1,6 @@
 import { CreateTask } from "~/components/CreateTask";
 import { Tasks } from "~/components/Tasks";
-import { TestSorting } from "../components/TestSorting"
+
 
 
 export default function Home() {
@@ -12,7 +12,7 @@ export default function Home() {
                         Techly.ai
                     </h1>
                     <CreateTask />
-                    <TestSorting />
+                    <Tasks />
                 </div>
             </main>
         </>
