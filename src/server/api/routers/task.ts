@@ -40,16 +40,23 @@ export const taskRouter = createTRPCRouter({
     });
   }),
 
-  create: publicProcedure.input(taskInput).mutation(({ ctx, input }) => {
-    // TODO change order to be dynamic
-    // throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
-    return ctx.prisma.task.create({
-      data: {
-        text: input,
-        order: 32,
-      },
+  create: publicProcedure.input(taskInput).mutation(async ({ ctx, input }) => {
+    // Find the highest order number
+    const maxOrderTask = await ctx.prisma.task.findFirst({
+        orderBy: {
+            order: 'desc',
+        },
     });
-  }),
+    const nextOrder = maxOrderTask ? maxOrderTask.order + 1 : 1;
+
+    // Create a new task with the next highest order number
+    return ctx.prisma.task.create({
+        data: {
+            text: input,
+            order: nextOrder,
+        },
+    });
+}),
 
 
   updateOrder: publicProcedure
