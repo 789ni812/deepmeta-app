@@ -51,6 +51,23 @@ export const taskRouter = createTRPCRouter({
     });
   }),
 
+
+  updateOrder: publicProcedure
+  .input(z.array(z.object({
+    id: z.string(),
+    order: z.number(),
+  })))
+  .mutation(async ({ ctx, input }) => {
+    // Loop through each task and update its order
+    for (const task of input) {
+      await ctx.prisma.task.update({
+        where: { id: task.id },
+        data: { order: task.order },
+      });
+    }
+    return true;
+  }),
+
 });
 
 

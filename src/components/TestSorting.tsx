@@ -1,5 +1,6 @@
 import React, {useEffect, useState} from 'react';
 import { api } from "~/utils/api";
+
 import {
   closestCenter,
   DndContext, 
@@ -21,6 +22,8 @@ import Item from './ItemToSort';
 
 export function TestSorting() {
     const { data: tasks, isLoading, isError } = api.task.all.useQuery();
+    const { mutate: updateTaskOrder } = api.task.updateOrder.useMutation();
+
     const [activeId, setActiveId] = useState(null);
     const [localTasks, setLocalTasks] = useState([]);
 
@@ -51,7 +54,7 @@ export function TestSorting() {
  
  console.log("Tasks:", tasks);
 
-  return (
+ return (
     <DndContext 
       sensors={sensors}
       collisionDetection={closestCenter}
@@ -59,16 +62,17 @@ export function TestSorting() {
       onDragEnd={handleDragEnd}
     >
       <SortableContext 
-        items={sortedTasks.map(task => task.id)}
+        items={localTasks.map(task => task.id)}
         strategy={verticalListSortingStrategy}
       >
-        {sortedTasks.map(task => <SortableItem key={task.id} id={task.id} task={task} />)}
+        {localTasks.map(task => <SortableItem key={task.id} id={task.id} task={task} />)}
       </SortableContext>
       <DragOverlay>
         {activeId ? <Item id={activeId} /> : null}
       </DragOverlay>
     </DndContext>
   );
+  
   
   function handleDragStart(event) {
     const {active} = event;
@@ -78,19 +82,38 @@ export function TestSorting() {
   
   function handleDragEnd(event) {
     const { active, over } = event;
-
+  
     if (active.id !== over.id) {
-      setLocalTasks((currentItems) => {
+      setLocalTasks(currentItems => {
         const oldIndex = currentItems.findIndex(item => item.id === active.id);
         const newIndex = currentItems.findIndex(item => item.id === over.id);
-
+  
         const reorderedItems = arrayMove(currentItems, oldIndex, newIndex);
-        // Update the order on the server here
-        // For example: updateTaskOrder(reorderedItems);
+  
+        // Prepare the data for updating the order in the database
+        const updatedOrder = reorderedItems.map((item, index) => ({
+          id: item.id,
+          order: index
+        }));
+  
+        // Optimistically update the UI before the server confirms
+        updateTaskOrder(updatedOrder, {
+          onSuccess: () => {
+            console.log('Order update succeeded');
+          },
+          onError: () => {
+            // Rollback to previous state in case of an error
+            setLocalTasks([...currentItems]);
+            console.error('Order update failed');
+          }
+        });
+  
         return reorderedItems;
       });
     }
-
+  
     setActiveId(null);
   }
+  
+  
 }
