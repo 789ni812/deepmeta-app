@@ -12,7 +12,11 @@ const Appbar: React.FC = () => {
           height={27.8}
           width={150}
         />
+        <h1 className="ml-6 text-xl font-medium">
+                        Techly.ai
+                    </h1>
       </div>
+      
     </>
   );
 };
