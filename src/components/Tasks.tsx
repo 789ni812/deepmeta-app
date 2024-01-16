@@ -79,7 +79,7 @@ export function Tasks() {
                 ))}
             </SortableContext>
             <DragOverlay>
-                {activeId ? <Item id={activeId} /> : null}
+                {activeId ? <Item id={activeId.toString()} /> : null}
             </DragOverlay>
         </DndContext>
     );
