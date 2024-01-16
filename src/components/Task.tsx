@@ -75,7 +75,7 @@ export function Task({ task, setLocalTasks }: TaskProps) {
           onChange={handleCheckboxChange}
         />
         <label htmlFor={`checkbox-${id}`} className={`cursor-pointer ${done ? "line-through" : ""}`}>
-          {text} - order: {order}
+          {text}
         </label>
       </div>
       <button
