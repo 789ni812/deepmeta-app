@@ -1,115 +1,91 @@
+import React from 'react';
+import { useSortable } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+import type { Task as TaskType } from "../types";
 import toast from "react-hot-toast";
-import type { Task } from "../types";
 import { api } from "../utils/api";
 
 type TaskProps = {
-	task: Task
-    }
+  task: TaskType;
+  setLocalTasks: React.Dispatch<React.SetStateAction<TaskType[]>>;
+}
 
-export function Task({ task }: TaskProps) {
-	const { id, text, done, order } = task
+export function Task({ task, setLocalTasks }: TaskProps) {
+  const { id, text, done, order } = task;
 
-	const trpc = api.useContext();
+  // Define the mutations
+  const doneMutation = api.task.toggle.useMutation({
+    onSuccess: () => {
+      toast.success("Task status updated");
+      // Update local state
+      setLocalTasks(currentTasks =>
+        currentTasks.map(t => t.id === id ? { ...t, done: !t.done } : t)
+      );
+    },
+    onError: () => {
+      toast.error("Error updating task status");
+    },
+  });
 
-	const { mutate: doneMutation } = api.task.toggle.useMutation({
-		onMutate: async ({ id, done }) => {
+  const deleteMutation = api.task.delete.useMutation({
+    onSuccess: () => {
+      toast.success("Task deleted");
+      // Update local state
+      setLocalTasks(currentTasks => 
+        currentTasks.filter(t => t.id !== id)
+      );
+    },
+    onError: () => {
+      toast.error("Error deleting task");
+    },
+  });
 
-			// Cancel any outgoing refetches so they don't overwrite our optimistic update
-			await trpc.task.all.cancel()
+  const handleCheckboxChange = (e) => {
+    e.stopPropagation();
+    doneMutation.mutate({ id, done: e.target.checked });
+  };
 
-			// Snapshot the previous value
-			const previousTasks = trpc.task.all.getData()
+  const handleDeleteClick = (e) => {
+    e.stopPropagation();
+    deleteMutation.mutate(id);
+  };
 
-			// Optimistically update to the new value
-			trpc.task.all.setData(undefined, (prev) => {
-				if (!prev) return previousTasks
-				return prev.map(t => {
-					if (t.id === id) {
-						return ({
-							...t,
-							done
-						})
-					}
-					return t
-				})
-			})
+  // Drag and drop handlers
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+  } = useSortable({ id: task.id });
 
-			// Return a context object with the snapshotted value
-			return { previousTasks }
-		},
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
 
-		onSuccess: (err, { done }) => {
-			if (done) {
-				toast.success("Task completed")
-			}
-		},
-
-		// If the mutation fails,
-		// use the context returned from onMutate to roll back
-		onError: (err, done, context) => {
-			toast.error(`An error occured when marking the task as ${done ? "done" : "undone"}`)
-			if (!context) return
-			trpc.task.all.setData(undefined, () => context.previousTasks)
-		},
-		// Always refetch after error or success:
-		onSettled: async () => {
-			await trpc.task.all.invalidate()
-		},
-	});
-
-	const { mutate: deleteMutation } = api.task.delete.useMutation({
-		onMutate: async (deleteId) => {
-
-			// Cancel any outgoing refetches so they don't overwrite our optimistic update
-			await trpc.task.all.cancel()
-
-			// Snapshot the previous value
-			const previousTasks = trpc.task.all.getData()
-
-			// Optimistically update to the new value
-			trpc.task.all.setData(undefined, (prev) => {
-				if (!prev) return previousTasks
-				return prev.filter(t => t.id !== deleteId)
-			})
-
-			// Return a context object with the snapshotted value
-			return { previousTasks }
-		},
-		// If the mutation fails,
-		// use the context returned from onMutate to roll back
-		onError: (err, newTask, context) => {
-			toast.error(`An error occured when deleting the task`)
-			if (!context) return
-			trpc.task.all.setData(undefined, () => context.previousTasks)
-		},
-		// Always refetch after error or success:
-		onSettled: async () => {
-			await trpc.task.all.invalidate()
-		},
-	});
-
-	return (
-		<div
-			className="flex gap-2 items-center justify-between"
-		>
-			<div className="flex gap-2 items-center">
-				<input
-					className="cursor-pointer w-4 h-4 border border-gray-300 rounded bg-gray-50 focus:ring-3 focus:ring-blue-300 dark:bg-gray-700 dark:border-gray-600 dark:focus:ring-blue-600 dark:ring-offset-gray-800"
-					type="checkbox" name="done" id={id} checked={done}
-					onChange={(e) => {
-						doneMutation({ id, done: e.target.checked });
-					}}
-				/>
-				<label htmlFor={id} className={`cursor-pointer ${done ? "line-through" : ""}`}>
-					{text} - order:{order}
-				</label>
-			</div>
-			<button
-				className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-2 py-1 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
-				onClick={() => {
-					deleteMutation(id)
-				}}
-			>Delete</button>
-		</div>
-	)
+  return (
+    <div ref={setNodeRef} style={style} className="flex gap-2 items-center justify-between">
+      <div {...listeners} {...attributes} className="drag-handle">
+        {/* Icon or element to use as the drag handle */}
+        <span>☰</span>
+      </div>
+      <div className="flex gap-2 items-center">
+        <input
+          className="cursor-pointer w-4 h-4 border border-gray-300 rounded bg-gray-50 focus:ring-3 focus:ring-blue-300 dark:bg-gray-700 dark:border-gray-600 dark:focus:ring-blue-600 dark:ring-offset-gray-800"
+          type="checkbox" name="done" id={`checkbox-${id}`} checked={done}
+          onChange={handleCheckboxChange}
+        />
+        <label htmlFor={`checkbox-${id}`} className={`cursor-pointer ${done ? "line-through" : ""}`}>
+          {text} - order: {order}
+        </label>
+      </div>
+      <button
+        className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-2 py-1 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+        onClick={handleDeleteClick}
+      >
+        Delete
+      </button>
+    </div>
+  );
 }

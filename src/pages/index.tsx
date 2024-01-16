@@ -13,7 +13,7 @@ export default function Home() {
           Techly.ai
           </h1>
 
-<Tasks />
+{/* <Tasks /> */}
 <CreateTask />
 <TestSorting />
          </div>
