@@ -22,8 +22,9 @@ export function CreateTask() {
 			trpc.task.all.setData(undefined, (prev) => {
 				const optimisticTask: Task = {
 					id: 'optimistic-task-id',
-					text: newTask, // 'placeholder'
-					done: false
+					text: newTask,
+					done: false,
+                    order: 1234
 				}
 				if (!prev) return [optimisticTask]
 				return [...prev, optimisticTask]
